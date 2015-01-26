@@ -1,0 +1,39 @@
+body,html {
+	margin: 0px;
+	padding: 0px;
+	font-family: 'PT Sans', "Segoe UI Bold", Arial, Tahoma;
+}
+a {
+	text-decoration: none;
+}
+#map {
+	position: absolute;
+	z-index: 0;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+#map {
+	cursor: -webkit-grab;
+	cursor: -moz-grab; 
+}
+#map:active {
+	cursor: -webkit-grab;
+	cursor: -moz-grab; 
+}
+.icon_photo {
+	background-size:cover;
+	width: 30px;
+	height: 30px;
+    border-radius: 50%;
+	border: 1px solid #000;
+	margin-left: -10px;
+	box-shadow: rgba(0,0,0, 0.7) 4px 4px 4px;
+}
+.icon_photo2 {
+	margin-top: 10px;
+	background-size:cover;
+	width: 100px;
+	height: 100px;
+}
