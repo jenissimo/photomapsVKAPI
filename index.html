@@ -2,28 +2,45 @@
 <html>
 <head>
 	<title>Фотокарта</title>
-	<script src="http://vk.com/js/api/openapi.js" type="text/javascript"></script>
-	<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="//vk.com/js/api/openapi.js" type="text/javascript"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Type" content="text/html" charset="UTF-8"/>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link rel="stylesheet" href="leaflet.css" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 </head>
 <body>
+	<div class="auth">
+		<div class="content" align="center">
+			<span class="logo glyphicon glyphicon-camera"></span>
+			<div class="alert alert-info">
+				Чтобы продолжить авторизуйтесь через социальную сеть вконтакте!
+			</div>
+			<div class="btn btn-primary dropdown-toggle" onclick="VK.Auth.login(authInfo);"><span class="glyphicon glyphicon-user"></span> Войти через вконтакте</div>
+		</div>
+	</div>
 	<div id="map"></div>
 	<script src="leaflet.js"></script>
 	<script src="http://maximeh.github.io/leaflet.bouncemarker/bouncemarker.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 	<script>
 		VK.init({
-			apiId: 2866099 // ID вашего приложения VK
+			apiId: 4149349 // ID вашего приложения VK
 		});
-
+		function authInfo(response) {
+			if (response.session) {
+				getPhotos(5000, 20);
+				$('.auth').hide();
+			} else {
+				$('.auth').show();
+			}	
+		}
 		var map = L.map('map',{maxBounds:[[-90, -180],[90, 180]]}).setView([56.8497, 53.2198], 4);
 		L.tileLayer('http://a.tile.openstreetmap.org/{z}/{x}/{y}.png', { minZoom: 2 }).addTo(map);
 
 		var map_сordinates = [[55.7503, 37.6233],[56.8497, 53.2198],[55.7858, 49.1500],[59.9659,30.3434],[57.9848,56.3598],[54.5975,56.0961],[54.9271,73.4106],[51.5360,39.1772],[55.0091,82.9193],[56.4867,85.0177],[58.1272,52.6636],[51.1586,71.4907],[49.8946,73.2348],[50.4365,30.5255],[56.0415,51.9645]];
 
 		var map_old_photo = [];
-		getPhotos(5000, 20);
 
 		function getPhotos(radius_, count_) {
 			var code = 'return [';
@@ -35,7 +52,7 @@
 			}
 			code += '];';
 			
-			VK.Api.call("execute", {code: code}, function(data) {
+			VK.Api.call('execute', {'code': code}, function(data) {
 				if (data.response) {
 					for (var i=0;i<data.response.length;i++) 
 					{	
@@ -57,6 +74,8 @@
 				} else alert(data.error.error_code + ' ' + data.error.error_msg);
 			});
 		}
+		VK.Auth.getLoginStatus(authInfo);
+		VK.UI.button('login_button');
 	</script>
 </body>
 </html>
