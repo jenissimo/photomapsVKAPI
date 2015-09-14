@@ -24,58 +24,75 @@
 	<script src="http://maximeh.github.io/leaflet.bouncemarker/bouncemarker.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 	<script>
+		var PHOTOS_COUNT = 500;
+		var currentLocation;
+		var addedIcons = {};
+
 		VK.init({
-			apiId: 4149349 // ID вашего приложения VK
+			apiId: 4204767 // ID вашего приложения VK
 		});
 		function authInfo(response) {
 			if (response.session) {
-				getPhotos(5000, 20);
+				initMap();
 				$('.auth').hide();
 			} else {
 				$('.auth').show();
 			}	
 		}
-		var map = L.map('map',{maxBounds:[[-90, -180],[90, 180]]}).setView([56.8497, 53.2198], 4);
+		var map = L.map('map',{maxBounds:[[-90, -180],[90, 180]]});
 		L.tileLayer('http://a.tile.openstreetmap.org/{z}/{x}/{y}.png', { minZoom: 2 }).addTo(map);
 
+
+		/*
 		var map_сordinates = [[55.7503, 37.6233],[56.8497, 53.2198],[55.7858, 49.1500],[59.9659,30.3434],[57.9848,56.3598],[54.5975,56.0961],[54.9271,73.4106],[51.5360,39.1772],[55.0091,82.9193],[56.4867,85.0177],[58.1272,52.6636],[51.1586,71.4907],[49.8946,73.2348],[50.4365,30.5255],[56.0415,51.9645]];
 
 		var map_old_photo = [];
+		*/
 
-		function getPhotos(radius_, count_) {
-			var code = 'return [';
-			for (var i=0;i<map_сordinates.length;i++) 
-			{
-				code += 'API.photos.search({"lat": "' + map_сordinates[i][0] + '", "long": "' + map_сordinates[i][1] + '", "radius": "' + radius_ + '", "count": "' + count_ + '", "sort": 0, "v": "5.27"})';
-				if (i != map_сordinates.length-1) 
-					code += ',';
+		function onLocationError(e) {
+			map.setView([56.8497, 53.2198], 4);
+			getPhotos(PHOTOS_COUNT);
+			//alert(e.message);
+		}
+		function onLocationChange(e) {
+			if (e.latlng) {
+				currentLocation = e.latlng;
+			} else {
+				currentLocation = map.getCenter();
 			}
-			code += '];';
+		    getPhotos(PHOTOS_COUNT);
+		}
+		function initMap() {
+			//.setView([56.8497, 53.2198], 4)
+			map.on('locationfound', onLocationChange);
+			map.on('moveend', onLocationChange);
+			map.on('zoomend', onLocationChange);
+			map.on('locationerror', onLocationError);
 			
-			VK.Api.call('execute', {'code': code}, function(data) {
+			map.locate({setView: true, maxZoom: 16});
+		}
+
+		function getPhotos(count) {
+			var radius = currentLocation.distanceTo(map.getBounds().getNorthEast());
+
+			VK.Api.call("photos.search",{"lat": currentLocation.lat, "long": currentLocation.lng, "radius": radius, "count": count, "sort": 0, "v": "5.27"}, function(data) {
 				if (data.response) {
-					for (var i=0;i<data.response.length;i++) 
-					{	
-						for (var j=0;j<data.response[i].items.length;j++)
-						{
-							if (data.response[i].items[j].id != map_old_photo[i]) 
-							{
-								var myIcon = L.divIcon({html: '<div style="background-image: url(' + data.response[i].items[j].photo_75 + ');" class="icon_photo"></div>'});
-								L.marker([data.response[i].items[j].lat, data.response[i].items[j].long], {
+					for (var j=0;j<data.response.items.length;j++)
+					{
+						if (!addedIcons.hasOwnProperty(data.response.items[j].id)) {
+							var myIcon = L.divIcon({html: '<div style="background-image: url(' + data.response.items[j].photo_75 + ');" class="icon_photo"></div>'});
+								L.marker([data.response.items[j].lat, data.response.items[j].long], {
 									bounceOnAdd: true,
 									icon: myIcon,
 									riseOnHover: true
-								}).addTo(map).bindPopup('<center><a href="http://vk.com/photo' + data.response[i].items[j].owner_id + '_' + data.response[i].items[j].id + '" target="_blank">Просмотреть на сайте<br/><div style="background-image: url(' + data.response[i].items[j].photo_604 + ');" class="icon_photo2"></div></a></center>');
-								if (j == 0) map_old_photo[i] = data.response[i].items[0].id;
-							} else break;
+								}).addTo(map).bindPopup('<center><a href="http://vk.com/photo' + data.response.items[j].owner_id + '_' + data.response.items[j].id + '" target="_blank">Просмотреть на сайте<br/><div style="background-image: url(' + data.response.items[j].photo_604 + ');" class="icon_photo2"></div></a></center>');
+							addedIcons[data.response.items[j].id] = data.response.items[j].id;
 						}
 					}
-					setTimeout(function() { getPhotos(50000, 20); }, 3000);
 				} else alert(data.error.error_code + ' ' + data.error.error_msg);
 			});
 		}
 		VK.Auth.getLoginStatus(authInfo);
-		VK.UI.button('login_button');
 	</script>
 </body>
 </html>
